@@ -2,9 +2,9 @@ install.packages("tidyverse")
 library(dplyr)
 library(tidyverse)
 #Carregando os dados
-votacao_sessao_2020_ES <- read_csv2("Rstudio/votacao_secao_2020_ES.csv", locale=locale(encoding = "latin1" ))
-sessoes_ES <- read_csv("Rstudio/rpt_secoes_csv-202209011300.csv")
-eleitor_ES <- read_csv2("Rstudio/perfil_eleitor_secao_ATUAL_ES.csv", locale=locale(encoding = "latin1" ))
+votacao_sessao_2020_ES <- read_csv2("https://media.githubusercontent.com/media/ronanaguiar/An-lise-de-dados-R/main/votacao_secao_2020_ES.csv", locale=locale(encoding = "latin1" ))
+sessoes_ES <- read_csv("https://github.com/ronanaguiar/An-lise-de-dados-R/raw/main/rpt_secoes_csv-202209011300.csv")
+eleitor_ES <- read_csv2("https://github.com/ronanaguiar/An-lise-de-dados-R/raw/main/perfil_eleitor_secao_ATUAL_ES.csv", locale=locale(encoding = "latin1" ))
 
 #Descrição dos dados de votação por sessão no ES
 head(votacao_sessao_2020_ES)
@@ -44,7 +44,6 @@ tail(votacao)
 glimpse(votacao)
 unique(votacao$NM_VOTAVEL) 
 unique(votacao$NR_SECAO)
-unique(votacao$NR_ZONA)
 
 #Quantidade de votos em legenda e na candidata
 qtVotos <- votacao %>% group_by(NM_VOTAVEL) %>%
@@ -69,7 +68,7 @@ sessoes <- sessoes_ES %>%
 glimpse(sessoes)
 resumoSessoes <- sessoes %>%
                 select(num_local, nom_local,des_endereco,
-                       nom_bairro, num_secao)
+                       nom_bairro, num_secao, qtd_aptos)
 resumoSessoes
 glimpse(resumoSessoes)
 unique(resumoSessoes$num_secao)
@@ -85,12 +84,14 @@ localVotaçao
 #votos por bairro
 votosBairro <- localVotaçao %>%
                 group_by(nom_bairro)%>%
-                summarise(QT_VOTOS = sum(QT_VOTOS))%>%
-                arrange(desc(QT_VOTOS))
+                summarise(QT_VOTOS = sum(QT_VOTOS), QT_APTOS = sum(qtd_aptos))%>%
+                mutate(PERC_VOTOS = QT_VOTOS/QT_APTOS*100) %>%
+                arrange(desc(PERC_VOTOS))
 votosBairro
 print(votosBairro, n = 48)
-
+summary(votosBairro)
 localVotaçao
+view(votosBairro)
 
 #Perfil do Eleitor
 #Analisando os dados
@@ -110,6 +111,5 @@ eleitor <- eleitor_ES %>%
                  QT_ELEITORES_PERFIL, QT_ELEITORES_DEFICIENCIA,
                  QT_ELEITORES_INC_NM_SOCIAL) %>%
           filter(NM_MUNICIPIO=="VITÓRIA")
-unique(eleitor_ES$NM_MUNICIPIO)
 head(eleitor)
 glimpse(eleitor)
